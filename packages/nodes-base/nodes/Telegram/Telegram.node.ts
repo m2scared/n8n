@@ -18,6 +18,8 @@ import {
 	addAdditionalFields,
 	apiRequest,
 	getPropertyName,
+	getApiEndpoint,
+	getFileEndpoint,
 } from './GenericFunctions';
 
 
@@ -1816,11 +1818,19 @@ export class Telegram implements INodeType {
 	methods = {
 		credentialTest: {
 			async telegramBotTest(this: ICredentialTestFunctions, credential: ICredentialsDecrypted): Promise<INodeCredentialTestResult> {
-				const credentials = credential.data;
+				const credentials = credential.data!;
+				const endpoint = 'getMe';
+				const uri = getApiEndpoint(credentials, endpoint);
 				const options = {
-					uri: `https://api.telegram.org/bot${credentials!.accessToken}/getMe`,
+					uri: uri,
 					json: true,
 				};
+				if (credentials.advanced) {
+					return {
+						status: 'OK',
+						message: 'Credential test disabled when advanced api endpoint enabled.',
+					}
+				}
 				try {
 					const response = await this.helpers.request(options);
 					if (!response.ok) {
@@ -1840,7 +1850,6 @@ export class Telegram implements INodeType {
 					status: 'OK',
 					message: 'Authentication successful!',
 				};
-
 			},
 		},
 	};
@@ -2194,7 +2203,14 @@ export class Telegram implements INodeType {
 						const filePath = responseData.result.file_path;
 
 						const credentials = await this.getCredentials('telegramApi');
-						const file = await apiRequest.call(this, 'GET', '', {}, {}, { json: false, encoding: null, uri: `https://api.telegram.org/file/bot${credentials.accessToken}/${filePath}`, resolveWithFullResponse: true });
+
+						if (credentials === undefined) {
+							throw new NodeOperationError(this.getNode(), 'No credentials got returned!');
+						}
+
+						const fileUri = getFileEndpoint(credentials, `${filePath}`);
+
+						const file = await apiRequest.call(this, 'GET', '', {}, {}, { json: false, encoding: null, uri: fileUri, resolveWithFullResponse: true });
 
 						const fileName = filePath.split('/').pop();
 						const binaryData = await this.helpers.prepareBinaryData(Buffer.from(file.body as string), fileName);
