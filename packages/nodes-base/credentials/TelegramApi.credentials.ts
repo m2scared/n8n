@@ -1,4 +1,5 @@
 import {
+	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
@@ -51,4 +52,11 @@ export class TelegramApi implements ICredentialType {
 			description: 'File endpoint. Use to redirect Telegram File API calls to another server. First \'{0}\' is the \'accessToken\', second \'{1}\' is the endpoint method. See: <a href="https://core.telegram.org/bots">bot api</a>.',
 		},
 	];
+
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: '=https://api.telegram.org/bot{{$credentials.accessToken}}',
+			url: '/getMe',
+		},
+	};
 }

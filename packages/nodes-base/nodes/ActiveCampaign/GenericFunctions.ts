@@ -34,7 +34,6 @@ export async function activeCampaignApiRequest(this: IHookFunctions | IExecuteFu
 
 	const options: OptionsWithUri = {
 		headers: {
-			'Api-Token': credentials.apiKey,
 		},
 		method,
 		qs: query,
@@ -47,7 +46,7 @@ export async function activeCampaignApiRequest(this: IHookFunctions | IExecuteFu
 	}
 
 	try {
-		const responseData = await this.helpers.request!(options);
+		const responseData = await this.helpers.requestWithAuthentication.call(this, 'activeCampaignApi',options);
 
 		if (responseData.success === false) {
 			throw new NodeApiError(this.getNode(), responseData);
@@ -133,7 +132,7 @@ export function activeCampaignDefaultGetAllProperties(resource: string, operatio
 				},
 			},
 			default: false,
-			description: 'If all results should be returned or only up to a given limit.',
+			description: 'Whether to return all results or only up to a given limit',
 		},
 		{
 			displayName: 'Limit',
@@ -157,10 +156,10 @@ export function activeCampaignDefaultGetAllProperties(resource: string, operatio
 				maxValue: 500,
 			},
 			default: 100,
-			description: 'How many results to return.',
+			description: 'Max number of results to return',
 		},
 		{
-			displayName: 'Simplify Response',
+			displayName: 'Simplify',
 			name: 'simple',
 			type: 'boolean',
 			displayOptions: {
@@ -174,7 +173,7 @@ export function activeCampaignDefaultGetAllProperties(resource: string, operatio
 				},
 			},
 			default: true,
-			description: 'Return a simplified version of the response instead of the raw data.',
+			description: 'Whether to return a simplified version of the response instead of the raw data',
 		},
 	];
 }
